@@ -1,0 +1,200 @@
+﻿<Window x:Class="RESTToolkitTestApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:RESTToolkitTestApp"
+        Title="Bing Maps REST Service Toolkit Test app" Height="1000" Width="1500">
+
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="10,3"/>
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="300"/>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="300"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="160"/>
+            <RowDefinition Height="250"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+
+        <ListBox Grid.RowSpan="3" Name="AddressListBox" SelectionMode="Single" Background="FloralWhite">
+
+        </ListBox>
+
+        <StackPanel Grid.RowSpan="2" Grid.Column="1" Grid.ColumnSpan="2">
+            <Grid Margin="5,10,5,5">
+                <TextBlock Text="Request URL:"/>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Width="170">
+                    <TextBlock Text="Processing Time: "/>
+                    <TextBlock Name="ProcessingTimeTbx"/>
+                </StackPanel>
+            </Grid>
+
+            <TextBox Name="RequestUrlTbx" Height="25" Margin="10,0"/>
+            <DockPanel Margin="10,0">
+                <TextBlock Text="ID: " VerticalAlignment="Center"/>
+                <TextBox Name="IDTbx" Height="25" Margin="5" VerticalContentAlignment="Center"/>
+                <TextBlock Text="Address: " VerticalAlignment="Center"/>
+                <Button Content="Go" Click="Go_Clicked" DockPanel.Dock="Right" x:Name="GoButton"/>
+                <TextBox Name="GeocodeAddressTbx" Height="25" Margin="5" VerticalContentAlignment="Center" KeyDown="EnterPressed"/>
+            </DockPanel>
+
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="10,0">
+                    <TextBlock>Radius:</TextBlock>
+                    <Slider x:Name="RadiusSlider" Minimum="0.10" Maximum="1" Width="300" Margin="10,0" TickFrequency="0.05" Value="0.2"
+                            ValueChanged="RadiusSlider_ValueChanged" TickPlacement="BottomRight" IsSnapToTickEnabled="True" AutoToolTipPlacement="TopLeft" AutoToolTipPrecision="2">
+                    </Slider>
+                    <TextBlock>Number of Results:</TextBlock>
+                    <Slider x:Name="ResultsSlider" Minimum="5" Maximum="20" Width="300" Margin="10,0" TickFrequency="1" Value="10"
+                            ValueChanged="ResultsSlider_ValueChanged" TickPlacement="BottomRight" IsSnapToTickEnabled="True" AutoToolTipPlacement="TopLeft" AutoToolTipPrecision="0">
+                    </Slider>
+                </StackPanel>
+                <!--<StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="Geocode" Click="GeocodeBtn_Clicked" Height="30"/>
+                    <Button Content="LocationRecog" Click="LocationRecogBtn_Clicked" Height="30"/>
+                    <Button Content="Expand All" Click="ExpandTree_Clicked" Height="30"/>
+                    <Button Content="Collapse" Click="CollapseTree_Clicked" Height="30"/>
+                </StackPanel>-->
+            </StackPanel>
+
+        </StackPanel>
+
+        <TabControl Grid.Row="1" Grid.Column="1">
+            <TabItem Name="TableTab" Header="Table View">
+                <FlowDocumentScrollViewer>
+                    <FlowDocument>
+                        <Table CellSpacing="10" x:Name="Table" FontSize="10" FontWeight="Bold" FontFamily="Arial">
+                            <Table.Columns>
+                                <TableColumn/>
+                                <TableColumn/>
+                                <TableColumn/>
+                                <TableColumn Width="100"/>
+                                <TableColumn/>
+                                <TableColumn Width="100"/>
+                            </Table.Columns>
+                            <TableRowGroup x:Name="RowGroup">
+
+                            </TableRowGroup>
+                        </Table>
+                    </FlowDocument>
+                </FlowDocumentScrollViewer>
+            </TabItem>
+            <TabItem Name="ResponseTab" Header="Tree View">
+                <TreeView Name="ResultTreeView" BorderThickness="0">
+                    <TreeView.Resources>
+                        <HierarchicalDataTemplate DataType="{x:Type local:ObjectNode}" ItemsSource="{Binding Path=Children}">
+                            <TreeViewItem>
+                                <TreeViewItem.Header>
+                                    <StackPanel Orientation="Horizontal" Margin="-10,0,0,0">
+                                        <TextBlock Text="{Binding Path=Name}"/>
+                                        <TextBlock Text=" : "/>
+                                        <TextBlock Text="{Binding Path=Value}"/>
+                                    </StackPanel>
+                                </TreeViewItem.Header>
+                            </TreeViewItem>
+                        </HierarchicalDataTemplate>
+                    </TreeView.Resources>
+                </TreeView>
+            </TabItem>
+
+        </TabControl>
+
+        <Grid Name="RequestProgressBar" Width="300" Height="35" Grid.Row="1" Grid.Column="1" Visibility="Collapsed">
+            <ProgressBar IsIndeterminate="True" />
+            <TextBlock Name="RequestProgressBarText" HorizontalAlignment="Center" VerticalAlignment="Center">Processing...</TextBlock>
+        </Grid>
+
+        <StackPanel Grid.Row="2" Grid.Column="1" Margin="10">
+            <StackPanel Orientation="Horizontal">
+                <Button Content="Open Map" Click="OpenMap_Clicked" Height="30" Width="80" HorizontalAlignment="Left"/>
+                <Button Content="Open in Google Maps(Better Streetview)" Click="GoogleMap_Clicked"/>
+                <Button x:Name="NewMapButton" Content="Open New Map From New Point" Click="NewLocationRecog_Clicked" IsEnabled="False"/>
+            </StackPanel>
+            <WebBrowser x:Name="wb" Height="500">
+
+            </WebBrowser>
+        </StackPanel>
+
+        <StackPanel Grid.Column="2" Margin="0,106,0,324" Grid.RowSpan="3">
+            <TextBlock Margin="5">
+                Search for Company
+            </TextBlock>
+            <DockPanel Margin="5,0">
+                <Button DockPanel.Dock="Right" x:Name="SearchCompaniesButton" IsEnabled="True" Click="UpdateCompanyList">
+                    Search
+                </Button>
+                <TextBox Margin="5" x:Name="CompanySearchBar">
+
+                </TextBox>
+            </DockPanel>
+            <ListBox SelectionMode="Single" Background="FloralWhite" Name="CompanyListBox" Margin="5" MaxHeight="350" />
+            <StackPanel Margin="5">
+                <TextBlock x:Name="NoResults"/>
+                <Button Content="Update This Company" Click="UpdateCompany" x:Name="UpdateCompanyButton" IsEnabled="False">
+
+                </Button>
+                <Button Content="Add New Company" Click="UpdateCompany">
+
+                </Button>
+            </StackPanel>
+        </StackPanel>
+
+        <StackPanel Grid.Column="2" Grid.Row="2" Margin="0,240,0,0" x:Name="UpdatePanel" IsEnabled="False">
+            <DockPanel>
+                <TextBlock VerticalAlignment="Center">Company Name:</TextBlock>
+                <TextBox x:Name="NewNameBox" Margin="5" VerticalContentAlignment="Center" IsEnabled="False">
+
+                </TextBox>
+            </DockPanel>
+            <DockPanel>
+                <TextBlock VerticalAlignment="Center">URL:</TextBlock>
+                <TextBox x:Name="NewURLBox" Margin="5" VerticalContentAlignment="Center">
+
+                </TextBox>
+            </DockPanel>
+            <DockPanel>
+                <TextBlock VerticalAlignment="Center">Phone Number:</TextBlock>
+                <TextBox x:Name="NewPhoneNumBox" Margin="5" VerticalContentAlignment="Center">
+
+                </TextBox>
+            </DockPanel>
+            <DockPanel>
+                <TextBlock VerticalAlignment="Center">Property Status:</TextBlock>
+                <Menu Margin="5">
+                    <MenuItem Header="Select Property Status" x:Name="PropertyStatusMenu">
+                    </MenuItem>
+                </Menu>
+            </DockPanel>
+            <DockPanel>
+                <TextBlock VerticalAlignment="Center">Client Status:</TextBlock>
+                <Menu Margin="5">
+                    <MenuItem Header="Select Client Status" x:Name="ClientStatusMenu">
+                    </MenuItem>
+                </Menu>
+            </DockPanel>
+            <DockPanel>
+                <TextBlock VerticalAlignment="Center">Target Type:</TextBlock>
+                <Menu Margin="5">
+                    <MenuItem Header="Select Target Type" x:Name="TargetTypeMenu">
+                    </MenuItem>
+                </Menu>
+            </DockPanel>
+            <DockPanel>
+                <TextBlock VerticalAlignment="Center">Notes:</TextBlock>
+                <TextBox x:Name="NotesBox" Margin="5" VerticalContentAlignment="Center">
+
+                </TextBox>
+            </DockPanel>
+            <Button Content="" x:Name="SaveButton" Click="SaveButton_Clicked"></Button>
+            <TextBlock Foreground="Red" x:Name="SaveNotification"></TextBlock>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8" http-equiv="X-UA-Compatible" content="IE=edge" /> <!--this part might change. https://docs.microsoft.com/en-us/bingmaps/v8-web-control/articles/cross-platform-bing-maps-v8-apps#using-bing-maps-v8-in-winform-and-wpf-apps-->
+    <script type='text/javascript' src='http://www.bing.com/api/maps/mapcontrol?callback=GetMap&key={key}' async defer></script>
+    <script type='text/javascript' defer>
+        var map, infobox, pushpin, radius;
+        var centerlattitude = 34.2;
+        var centerlongitude = -117.8;
+
+        function GetMap() {
+            var center = new Microsoft.Maps.Location(centerlattitude, centerlongitude);
+            map = new Microsoft.Maps.Map('#myMap', { center: center, zoom: 20 });
+            pushpin = new Microsoft.Maps.Pushpin(new Microsoft.Maps.Location(centerlattitude, centerlongitude + 0.0005), { draggable: true });
+            map.entities.push(pushpin);
+            Microsoft.Maps.Events.addHandler(pushpin, 'changed', getNewCenter);
+            Microsoft.Maps.loadModule("Microsoft.Maps.SpatialMath", function () {
+                var path = Microsoft.Maps.SpatialMath.getRegularPolygon(center, radius * 1000, 36, Microsoft.Maps.SpatialMath.Meters);
+                var poly = new Microsoft.Maps.Polygon(path, { fillColor: new Microsoft.Maps.Color(20, 159, 240, 79) });
+                map.entities.push(poly);
+            });
+        }
+
+        //Receives center and radius
+        function SetCoords(lat, long, rad) {
+            centerlattitude = lat;
+            centerlongitude = long;
+            radius = rad;
+            GetMap();
+        }
+
+        function GetLat() {
+            return centerlattitude;
+        }
+
+        function GetLong() {
+            return centerlongitude;
+        }
+
+        //Stores coordinates of purple pin wherever it moves
+        function getNewCenter() {
+            var location = pushpin.getLocation();
+            centerlattitude = location.latitude;
+            centerlongitude = location.longitude;
+        }
+
+        function GetDataOfLocation(lat, long, name, duplicate) {
+            CreatePushpin(lat, long, name, duplicate);
+        }
+
+        function CreatePushpin(lat, long, name, duplicate) {
+            //create pushpin: green for unique coordinates, red for duplicate coordinates
+            //red pins are shifted around randomly
+            var pushpin1 = new Microsoft.Maps.Pushpin(new Microsoft.Maps.Location(centerlattitude, centerlongitude))
+            if (duplicate == 1)
+                pushpin1 = new Microsoft.Maps.Pushpin(new Microsoft.Maps.Location(lat + Math.random() / 10000 - 0.00005, long + Math.random() / 10000 - 0.00005), { color: 'red' });
+            else {
+                pushpin1 = new Microsoft.Maps.Pushpin(new Microsoft.Maps.Location(lat, long), { color: 'green' });
+            }
+            pushpin1.metadata = {
+                title: name
+            }
+            map.entities.push(pushpin1);
+
+            //Displays info about company
+            infobox = new Microsoft.Maps.Infobox(map.getCenter(), { visible: false });
+            infobox.setMap(map);
+
+            //Add mouse events to the pushpin.
+            Microsoft.Maps.Events.addHandler(pushpin1, 'mouseover', pinClicked);
+            Microsoft.Maps.Events.addHandler(pushpin1, 'mouseout', mouseout)
+        }
+
+        function pinClicked(e) {
+            if (e.target.metadata) {
+                infobox.setOptions({
+                    location: e.target.getLocation(),
+                    title: e.target.metadata.title,
+                    description: '',
+                    visible: true
+                })
+            }
+        }
+
+        function mouseout(e) {
+            if (e.target.metadata) {
+                infobox.setOptions({ visible: false })
+            }
+        }
+
+        function highlight(id) {
+            //Highlight the mouse event div to indicate that the event has fired.
+            document.getElementById(id).style.background = 'LightGreen';
+            setTimeout(function () { document.getElementById(id).style.background = 'white'; }, 1000);
+        }
+    </script>
+
+</head>
+<body>
+    <div id="redgreeninfo" style="margin:10px 0px 10px 0px; color : crimson">Red pins share generic coordinates as 1 or more pins, so they have been randomly moved a little bit</div>
+    <div id="refreshinfo" style="margin:10px 0px 10px 0px; color : crimson">If red pins are still too close together, press Open Map again</div>
+    <div id="purpleinfo" style="margin:10px 0px 10px 0px; color : rebeccapurple">Drag the purple pin to new location and press "Open New Map From New Point"</div>
+    <div id="myMap" style="position:relative;width:800px;height:600px;"></div>
+    <img src="ushermeme.gif" alt="Easter Egg" style="margin-top:1000px">
+</body>
+</html>
